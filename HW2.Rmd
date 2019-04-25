@@ -36,7 +36,7 @@ params:
 
 # 1 實證應用
 Execute the following code lines to import fertil2 data frame. 
-```{r}
+```{r data1}
 library(readr)
 fertil2 <- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/master/fertil2.csv")
 ```
@@ -48,17 +48,42 @@ Estimate the model:
 $$children=\beta_{0}+\beta_{1}educ+\beta_{2}age+\beta_{3}age^{2}+u$$
 by OLS, and interpret the estimates.
 
+```{r ans11}
+
+```
+
+
 ## 1.2
 The variable frsthalf is a dummy variable equal to one if the woman was born during the first six months of the year. Assuming that frsthalf is uncorrelated with the error term from 1.1, show that frsthalf is a reasonable IV candidate for educ. (Hint: you need to do a regression.)
+
+
+```{r ans12}
+
+```
 
 ## 1.3
 Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estiimate from 1.1.
 
+
+```{r ans13}
+
+```
+
 ## 1.4
 Add the binary variables electric, tv, and bicycle to the model and assume that these are exogenous. Estimate the equation by OLS and TSLS and compare the estimated coefficients on educ. Interpret the coefficient on tv and explain why television ownership has a negative effect on fertility.
 
+```{r ans14}
+
+```
+
+
 ## 1.5 
 Continue from 1.4, conduct Hausman test to see if OLS is valid for the study under a 5 percent test size.
+
+
+```{r ans15}
+
+```
 
 ## 1.6
 Can we test whether frsthalf is indeed exogenous for being an IV? why or why not?
@@ -66,10 +91,18 @@ Can we test whether frsthalf is indeed exogenous for being an IV? why or why not
 ## 1.7
 If we add one more IV catholic, can we test IV exogeneity? If yes, what is the test result under a 5 percent test size.
 
+
+```{r ans17}
+
+```
+
 ## 1.8
 Are frsthalf and catholic weak IVs?
 
 
+```{r ans18}
+
+```
 
 # 2 複迴歸與工具變數
 
@@ -95,6 +128,17 @@ $$Y=Y_{-p}+\beta^* P$$
 
 說明此時$E(Y|P)$中P的係數即為$\beta^*$.
 
+$Y=Y_{-p}+{\beta}^\star P$ \
+ $=E(Y|P)= E(Y_{-p})+{\beta}^\star P|P)$ \
+ $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|P]+{\beta}^{\star}P$ \
+ $=E(2+3rincome+\tilde{\epsilon}|P)+{\beta}^{\star}P$ \
+ $=2+3E(rincome|P)+E(\tilde{\epsilon}|P)+{\beta}^{\star}P$ \
+ $=2+\beta^{\star}P$ \
+ 其中$rincome ⊥ P$則 $E(rincome|P)=0$ \
+ $\tilde{\epsilon}⊥ P則 E(\tilde{\epsilon}|P)=0$ \
+ 
+ 由此過程可以得知，$E(Y|P)$其中$P$的係數為$\beta^*$
+
 ## 2.2 立足點情境A.2
 
 此情境包含兩部份：
@@ -107,6 +151,20 @@ $$Y=Y_{-p}+\beta^* P$$
 
 說明此時$E(Y|P)$中P的係數「不」為$\beta^*$，但$E(Y|P,rincome)$中P的係數為$\beta^*$。
 
+$E(Y|P)=E(2+3rincome|P)+E(\tilde{\epsilon}|P)+{\beta^\star}P$ \
+      $=E(2+3rincome|P)+0+{\beta^\star}P$ \
+      $=2+3E(rincome|P)+{\beta^\star}P$ \
+      $=2+3(0.5+P)+{\beta^\star}P$ \
+      $=3.5+(3+{\beta^\star})P$ \
+      由此過程可以得知，$E(Y|P)中P的係數不等於{\beta^\star}$ \
+ \
+
+$E(Y|P,rincome)=E(Y_{-P}+{\beta^\star}P|P,rincome)$ \
+              $=E[E(Y_{-P}|rincome)+\tilde{\epsilon}|P,rincome]+{\beta^\star}P$ \
+              $=E(Y_{-P}|rincome)+E(\tilde{\epsilon}|P,rincome)+{\beta^\star}P$ \
+              $=2+3rincome+0+{\beta^\star}P$ \
+              由此過程可以得知，$E(Y|P,rincome) 中P的係數為{\beta^\star}$
+
 ## 2.3 立足點情境A.3
 
 考慮以下兩個情境條件：
@@ -118,6 +176,21 @@ $$Y=Y_{-p}+\beta^* P$$
 即P與$Y_{-p}$有關連：此關連性可來自於【A.2.2】中P與rincome的關連，也可來自於它與「非價格、非所得」引起的銷量之關連（即與$\tilde{\epsilon}$相關部份）
 
 若$E(\tilde{\epsilon}|P)=0.5+2P$，說明不論使用$E(Y|P)$或$E(Y|P,rincome)$，其P之係數都不會是$\beta^*$
+
+$E(Y|P)=E(Y_{-p}+\beta^*P|P)$ \
+      $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|P]+\beta^*P$ \
+      $=E(2+3rincome|P)+E(\tilde{\epsilon}|P)+\beta^*P$ \
+      $=2+3E(rincome|P)+0.5+2P+\beta^*P$ \
+      $=2+3(0.5+P)+0.5+2P+\beta^*P$ \
+      $=4+(5+\beta^*)P$  \
+      由此過程可以得知，其中$5+\beta^*$不等於$\beta^*$ \
+ \
+$E(Y|P,rincome)=E(Y_{-p}+\beta^*P|P,rincome)$ \
+              $=E(E(Y_{-p}|rincome)+\tilde{\epsilon}|P,rincome]+\beta^*P$ \
+              $=2+3rincome+E(\tilde{\epsilon}|P,rincome)+\beta^*P$ \
+              $=2+3rincome+0.5+2P+\beta^*P$ \
+              $=2.5+3rincome+(2+\beta^*)P$  \
+              由此過程可以得知，其中$2+\beta^*$不等於$\beta^*$
 
 ## 2.4 立足點情境A.3+效應情境B.1：TSLS
 
@@ -133,6 +206,16 @@ $$Y=Y_{-p}+\beta^* P$$
 
 若$E(\tilde{\epsilon}|P)=0.5+2P$，說明使用$E(Y|P_z,rincome)$其中$P_z$的係數會是$\beta^*$
 
+$E(Y|P_z,rincome)=E(Y_{-p}+\beta^*P|P_z,rincome)$ \
+                $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|P_z,rincome]+E(\beta^*P|P_z,rincome)$ \
+                $=2+3rincome+\beta^*P_z$ \
+                
+其中:  \
+$E(\tilde\epsilon|P_z,rincome)=E[Y_{-p}-E(Y_{-p}|rincome)|P_z,rincome]$ \
+                             $=E(Y_{-p}|P_z,rincome)-E(Y_{-p}|P_z,rincome)=0$ \
+                             
+由此過程可以得知，$E(Y|P_z,rincome)$其中$P_z$的係數為$\beta^*$
+
 ## 2.5 立足點情境A.3+效應情境B.1：複迴歸
 
 承接上題情境，即
@@ -145,6 +228,18 @@ $$Y=Y_{-p}+\beta^* P$$
   
 說明使用$E(Y|P,rincome,z)$其中$P$的係
 數不會是$\beta^*$.
+
+$E(Y|P,rincome,Z)=E(Y_{-p}+{\beta}^{\star}p|p,rincome,Z)$ \
+                $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|p,rincome,Z]+\beta^{\star}p$ \
+                $=2+3rincome+E(\tilde{\epsilon}|p,rincome,Z)+\beta^{\star}p$ \
+                $=2+3erincome+\beta^{\star}$ \
+                \
+                
+                其中 \
+                $E(\tilde{\epsilon}|p,rincome,Z)=E[Y_{-p}-E(Y_{-p}|rincome|p,rincome,Z)]$ \
+                $=E[Y_{-p}|p,rincome,Z]-E(Y_-p|rincome)|p,rincome,Z]$ \
+                $=E(Y_{-p}|p,rincome,Z)-E(Y_-p|p,rincome,Z)=0$ \
+                由此過程可以得知，$E(Y|P,rincome,z)$其中$P$的係數不會為$\beta^*$
 
 # 3. 替代變數
 
