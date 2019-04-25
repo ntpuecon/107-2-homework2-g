@@ -49,42 +49,74 @@ $$children=\beta_{0}+\beta_{1}educ+\beta_{2}age+\beta_{3}age^{2}+u$$
 by OLS, and interpret the estimates.
 
 ```{r ans11}
-
+library(dplyr)
+fertil2 %>%
+  lm(children ~ educ + age +agesq, data=.) ->model1
+summary(model1)
 ```
-
+由表可知:當其他條件不變下，當受教育年數每增加一年，孩子數會下降0.09個
+         當其他條件不變下，年紀每增加一歲，孩子數會增加0.33個
+         當其他條件不變下，年紀平方每增加一單位，孩子數會下降0.0023個
 
 ## 1.2
 The variable frsthalf is a dummy variable equal to one if the woman was born during the first six months of the year. Assuming that frsthalf is uncorrelated with the error term from 1.1, show that frsthalf is a reasonable IV candidate for educ. (Hint: you need to do a regression.)
-
+l=1 k=1
 
 ```{r ans12}
-
+fertil2 %>%
+  lm(educ ~ frsthalf + age +agesq, data=.) ->model2
+summary(model2)
 ```
+F test=175.2 > 10 根據經驗法則，frsthalf是一個合理的工具變數。
 
 ## 1.3
-Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estiimate from 1.1.
+Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estimate from 1.1.
 
 
 ```{r ans13}
-
+library(AER)
+fertil2 %>%
+  ivreg(children ~ educ + age +agesq | frsthalf + age + agesq, data=.) -> model3
+summary(model3)
 ```
 
 ## 1.4
 Add the binary variables electric, tv, and bicycle to the model and assume that these are exogenous. Estimate the equation by OLS and TSLS and compare the estimated coefficients on educ. Interpret the coefficient on tv and explain why television ownership has a negative effect on fertility.
 
 ```{r ans14}
+library(dplyr)
+library(AER)
+fertil2 %>%
+  ivreg(children ~  educ + age +agesq + electric + tv +bicycle | frsthalf + age + agesq + electric + tv +bicycle, data=.) -> model4
+summary(model4)
 
+fertil2 %>%
+  lm(children ~  educ + age +agesq + electric + tv +bicycle, data = .) ->model5
+summary(model5)
 ```
-
 
 ## 1.5 
 Continue from 1.4, conduct Hausman test to see if OLS is valid for the study under a 5 percent test size.
-
-
 ```{r ans15}
+library(AER)
+model4 <- ivreg(
+  children ~  educ + age +agesq + electric + tv +bicycle| frsthalf + age + agesq + electric + tv +bicycle, data=fertil2
+   ) 
 
+model5 <- lm(
+  children ~  educ + age +agesq + electric + tv +bicycle, data = fertil2
+  )
+
+summary(model4, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model4_tests
+summary(model5, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model5_tests
+
+sandwich_HC1<-function(x,adjust=TRUE){
+  sandwich(x,adjust=adjust)
+}
+summary(model5, vcov = sandwich_HC1, diagnostics = TRUE, df=Inf) -> model5_tests_hc1
+model4_tests
 ```
-
+不顯著，工具變數和誤差像無關。
 ## 1.6
 Can we test whether frsthalf is indeed exogenous for being an IV? why or why not?
 
@@ -101,7 +133,10 @@ Are frsthalf and catholic weak IVs?
 
 
 ```{r ans18}
-
+library(dplyr)
+fertil2 %>%
+  lm(educ ~ catholic + frsthalf + age +agesq, data=.) ->model6
+summary(model6)
 ```
 
 # 2 複迴歸與工具變數
