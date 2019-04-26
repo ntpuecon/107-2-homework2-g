@@ -122,7 +122,7 @@ sandwich_HC1<-function(x,adjust=TRUE){
 summary(model5, vcov = sandwich_HC1, diagnostics = TRUE, df=Inf) -> model5_tests_hc1
 model5_tests
 ```
-由表可知Hausman統計量為1.936，沒有大於自由度為6的卡方12.59，在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
+由表可知Hausman統計量為1.936，由p-value可知在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
 
 ## 1.6
 Can we test whether frsthalf is indeed exogenous for being an IV? why or why not? \
