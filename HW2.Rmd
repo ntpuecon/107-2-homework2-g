@@ -98,7 +98,7 @@ fertil2 %>%
   ivreg(children ~  educ + age + agesq + electric + tv + bicycle | frsthalf + age + agesq + electric + tv +bicycle, data=.) -> model5
 summary(model5)
 ```
-加進更多工具變數使教育年限對孩子數的影響更強，本來由OLS跑出的是媽媽受教育年數每增加一年，孩子數會下降0.077個，加了工具變數後變成媽媽受教育年數每增加一年，孩子數會下降0.16個，不過相對OLS估計下就顯得比較不顯著。
+加進更多工具變數使教育年限對孩子數的影響更強，本來由OLS跑出的是媽媽受教育年數每增加一年，孩子數會下降0.077個，加了工具變數後變成媽媽受教育年數每增加一年，孩子數會下降0.16個，不過相對OLS估計下就顯得比較不顯著。\
 另外，相較於沒有看電視的人，較常看電視的那群人通常會久坐，造成身體比較不好，生育率比較低，所以television ownership和fertility有負向的關係。
 
 ## 1.5 
@@ -122,10 +122,10 @@ sandwich_HC1<-function(x,adjust=TRUE){
 summary(model5, vcov = sandwich_HC1, diagnostics = TRUE, df=Inf) -> model5_tests_hc1
 model5_tests
 ```
-由表可知Hausman統計量為1.936，沒有大於自由度為6的卡方，在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
+由表可知Hausman統計量為1.936，沒有大於自由度為6的卡方12.59，在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
 
 ## 1.6
-Can we test whether frsthalf is indeed exogenous for being an IV? why or why not?
+Can we test whether frsthalf is indeed exogenous for being an IV? why or why not? \
 不行，因為如果只有額外找frsthalf這個工具變數，並且有興趣的效應變數只有educ一個的話，這時就滿足exactly identify，沒辦法檢定額外找的frsthalf是否滿足排除條件，因為卡方的自由度為0。
 
 ## 1.7
@@ -149,7 +149,15 @@ library(dplyr)
 fertil2 %>%
   lm(educ ~ catholic + frsthalf + age +agesq, data=.) ->model6
 summary(model6)
+
+library(AER)
+model6 <- ivreg(
+  children ~  educ + age +agesq | catholic + frsthalf + age + agesq , data=fertil2
+   ) 
+summary(model6, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model6_tests
+model6_tests
 ```
+由1-7的表可以看到Weak instruments的統計量為78，大於10，且p-value很顯著，故拒絕Ho，frsthalf and catholic are not weak IVs
 
 # 2 複迴歸與工具變數
 
@@ -306,12 +314,12 @@ $$y_i=\beta^* x_i+\gamma w_i+y_{-x,-w,i}$$
 $$\tilde{x}_i=x_i+\epsilon_i.$$
 請問效應解釋變數使用替代變數下，$\tilde{x}_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|\tilde{x}_i,w_i)$中$\tilde{x_i}$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？
 
-$y_i=(\tilde{x_i}-\epsilon_i)\beta^{\star}+{\gamma}w_i+y_{-x,-w,i}$
-$if E(\epsilon_i|\tilde{x}_i)=\alpha_1+\alpha2\tilde{x}$ \
-$y_i=(\tilde{x}_i-(\alpha_1+\alpha_2\tilde{x})\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
-$E(y_i|\tilde{x}_i,w_i)=(1+\alpha_2)\beta^{\star}\tilde{x}_i-\alpha_1\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
-$ 除非 E(\epsilon_i|\tilde{x}_i)=0,\tilde{x}_i\perp\epsilon_i$
-$E(y_i|\tilde{x}_i,w_i)=\tilde{x}_i\beta^{\star}+\gamma w_i+y_{-x,-w,i}如果要有一致性的話需要\tilde{x}_i\perp\epsilon_i才會有$
+$y_i=(\tilde{x_i}-\epsilon_i)\beta^{\star}+{\gamma}w_i+y_{-x,-w,i}$ \
+if $E(\epsilon_i|\tilde{x}_i)=\alpha_1+\alpha2\tilde{x}$ \
+$y_i=(\tilde{x}_i-(\alpha_1+\alpha_2\tilde{x})\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$ \
+$E(y_i|\tilde{x}_i,w_i)=(1+\alpha_2)\beta^{\star}\tilde{x}_i-\alpha_1\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$ \
+
+若令$E(\epsilon_i|\tilde{x}_i)=0$成立時，則可得到$E(y_i|\tilde{x}_i,w_i)=\tilde{x}_i\beta^{\star}+\gamma w_i+y_{-x,-w,i}$，故$\tilde{x}_i\perp\epsilon_i$，此時$\tilde{x}_i$的OLS估計式具有一致性
 
 ## 3.2
 
@@ -319,24 +327,25 @@ $E(y_i|\tilde{x}_i,w_i)=\tilde{x}_i\beta^{\star}+\gamma w_i+y_{-x,-w,i}如果要
 $$\tilde{w}_i=w_i+\epsilon_i.$$
 請問控制變數使用替代變數下，$x_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|x_i,\tilde{w}_i)$中$x_i$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？
 
-$用\tilde{w}_i替代w_i做為控制變數，\tilde{w}_i與Y_{-x_i}有關且\tilde{w}_i與x_i有關$
+用$\tilde{w}_i$替代$w_i$做為控制變數，$\tilde{w}_i$與$Y_{-x_i}$有關且$\tilde{w}_i$與$x_i$有關
 
 訊息拆解:
 
-$Y_{-x_i}=E(Y_{-x_i}|\tilde{w}_i)+(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))$
-$Y_i=(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$
-$令Y_{-x,-\tilde{w},i}=(Y_{-x_i}-E(Y_{x_i}|\tilde{w_i}))$
-$Y_i=Y_{-x_i,-\tilde{w_i}}+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$
-$Y_{-x_i,-\tilde{w_i}}與\tilde{w}無關，假設\tilde{w}隨時間改變，即E(Y_{-x_i,t}|\tilde{w_i})=\alpha_i，\alpha_i為固定效果$
-$Y_{it}=Y_{-x,\tilde{w},it}+\alpha_i+\beta^{\star}x_it$
-$Y_{i,0}=Y_{-x,\tilde{w},i0}+\alpha_i+\beta^{\star}x_{i0}$
-$Y_{i,1}=Y_{-x,-\tilde{w},i1}+\alpha_i+\beta^{\star}x_{i1}$
-$(Y_{i,1}-Y_{i,0})=\gamma_0+\gamma_1(x_{i1}-x_{i0})+V_i$
-$E(Y_{i1}-Y_{i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})+\beta^{\star}(x_{xi}-x_{i0})$
-$\because Y_{-x,-\tilde{w},i1}\perp x_{i1}，Y_{-x,-\tilde{w},i0}\perp x_{i0}$
-$\therefore E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})=\gamma_0$
-$\gamma(x_{i1}-x_{i0})=\beta^{\star}(x_{i1}-x_{i0})$
-$V_i=(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})-E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})$
+$Y_{-x_i}=E(Y_{-x_i}|\tilde{w}_i)+(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))$ \
+$Y_i=(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$ \
+令$Y_{-x,-\tilde{w},i}=(Y_{-x_i}-E(Y_{x_i}|\tilde{w_i}))$ \
+$Y_i=Y_{-x_i,-\tilde{w_i}}+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$ \
+$Y_{-x_i,-\tilde{w_i}}$與$\tilde{w}$無關，假設$\tilde{w}$隨時間改變\
+即$E(Y_{-x_i,t}|\tilde{w_i})=\alpha_i$，$\alpha_i$為固定效果 \
+$Y_{it}=Y_{-x,\tilde{w},it}+\alpha_i+\beta^{\star}x_it$ \
+$Y_{i,0}=Y_{-x,\tilde{w},i0}+\alpha_i+\beta^{\star}x_{i0}$ \
+$Y_{i,1}=Y_{-x,-\tilde{w},i1}+\alpha_i+\beta^{\star}x_{i1}$ \
+$(Y_{i,1}-Y_{i,0})=\gamma_0+\gamma_1(x_{i1}-x_{i0})+V_i$ \
+$E(Y_{i1}-Y_{i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})+\beta^{\star}(x_{xi}-x_{i0})$ \
+$\because Y_{-x,-\tilde{w},i1}\perp x_{i1}，Y_{-x,-\tilde{w},i0}\perp x_{i0}$ \
+$\therefore E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})=\gamma_0$ \
+$\gamma(x_{i1}-x_{i0})=\beta^{\star}(x_{i1}-x_{i0})$ \
+$V_i=(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})-E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})$ \
 But we need a strong assumption that
-$Y_{-x,-\tilde{w},is} \perp x_{it} whens \ne t $
+$Y_{-x,-\tilde{w},is}\perp x_{it}$ when $s \ne t$ \
 $so \to (Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}) \perp (x_{i1}-x_{i0})$
