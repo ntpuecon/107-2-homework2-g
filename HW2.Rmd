@@ -105,11 +105,11 @@ summary(model5)
 Continue from 1.4, conduct Hausman test to see if OLS is valid for the study under a 5 percent test size.
 ```{r ans15}
 library(AER)
-model4 <- ivreg(
+model5 <- ivreg(
   children ~  educ + age +agesq + electric + tv +bicycle| frsthalf + age + agesq + electric + tv +bicycle, data=fertil2
    ) 
 
-model5 <- lm(
+model4 <- lm(
   children ~  educ + age +agesq + electric + tv +bicycle, data = fertil2
   )
 
@@ -120,23 +120,30 @@ sandwich_HC1<-function(x,adjust=TRUE){
   sandwich(x,adjust=adjust)
 }
 summary(model5, vcov = sandwich_HC1, diagnostics = TRUE, df=Inf) -> model5_tests_hc1
-model4_tests
+model5_tests
 ```
-不顯著，工具變數和誤差像無關。
+由表可知Hausman統計量為1.936，沒有大於自由度為6的卡方，在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
+
 ## 1.6
 Can we test whether frsthalf is indeed exogenous for being an IV? why or why not?
+不行，因為如果只有額外找frsthalf這個工具變數，並且有興趣的效應變數只有educ一個的話，這時就滿足exactly identify，沒辦法檢定額外找的frsthalf是否滿足排除條件，因為卡方的自由度為0。
 
 ## 1.7
 If we add one more IV catholic, can we test IV exogeneity? If yes, what is the test result under a 5 percent test size.
 
 
 ```{r ans17}
-
+library(AER)
+model6 <- ivreg(
+  children ~  educ + age +agesq | catholic + frsthalf + age + agesq , data=fertil2
+   ) 
+summary(model6, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model6_tests
+model6_tests
 ```
+此題因為多加了catholic這個工具變數所以就可以檢定排除條件，因為滿足over-identify，由表可知sargan統計量為1.436，由p-value知在5%顯著水準下不拒絕Ho，表示工具變數和tsls下的殘差正交，滿足排他條件(外生條件)。
 
 ## 1.8
 Are frsthalf and catholic weak IVs?
-
 
 ```{r ans18}
 library(dplyr)
