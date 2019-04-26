@@ -54,20 +54,22 @@ fertil2 %>%
   lm(children ~ educ + age +agesq, data=.) ->model1
 summary(model1)
 ```
-由表可知:當其他條件不變下，當受教育年數每增加一年，孩子數會下降0.09個
-         當其他條件不變下，年紀每增加一歲，孩子數會增加0.33個
-         當其他條件不變下，年紀平方每增加一單位，孩子數會下降0.0023個
+由表可知:在其他條件不變下，當媽媽受教育年數每增加一年，孩子數會下降0.09個
+         在其他條件不變下，媽媽年紀每增加一歲，孩子數會增加0.33個
+         在其他條件不變下，媽媽年紀平方每增加一單位，孩子數會下降0.0026個
+         且由p-value可知三個變數對於解釋孩子數都是顯著的。
 
 ## 1.2
 The variable frsthalf is a dummy variable equal to one if the woman was born during the first six months of the year. Assuming that frsthalf is uncorrelated with the error term from 1.1, show that frsthalf is a reasonable IV candidate for educ. (Hint: you need to do a regression.)
-l=1 k=1
+
 
 ```{r ans12}
 fertil2 %>%
   lm(educ ~ frsthalf + age +agesq, data=.) ->model2
 summary(model2)
 ```
-F test=175.2 > 10 根據經驗法則，frsthalf是一個合理的工具變數。
+由表可知，frsthalf之係數顯著不為0，所以和educ具有關聯性
+且F-statistic=(-7.554)^2 > 10 根據經驗法則，frsthalf是一個合理的強工具變數。
 
 ## 1.3
 Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estimate from 1.1.
@@ -78,7 +80,9 @@ library(AER)
 fertil2 %>%
   ivreg(children ~ educ + age +agesq | frsthalf + age + agesq, data=.) -> model3
 summary(model3)
+summary(model1)
 ```
+比較加了工具變數的model3和1.1跑的OLS model1，可看出教育年數對於孩子數的影響更多，本來由OLS跑出的是媽媽受教育年數每增加一年，孩子數會下降0.09個，加了工具變數後變成媽媽受教育年數每增加一年，孩子數會下降0.17個。
 
 ## 1.4
 Add the binary variables electric, tv, and bicycle to the model and assume that these are exogenous. Estimate the equation by OLS and TSLS and compare the estimated coefficients on educ. Interpret the coefficient on tv and explain why television ownership has a negative effect on fertility.
@@ -87,13 +91,15 @@ Add the binary variables electric, tv, and bicycle to the model and assume that 
 library(dplyr)
 library(AER)
 fertil2 %>%
-  ivreg(children ~  educ + age +agesq + electric + tv +bicycle | frsthalf + age + agesq + electric + tv +bicycle, data=.) -> model4
+  lm(children ~  educ + age +agesq + electric + tv +bicycle, data = .) ->model4
 summary(model4)
 
 fertil2 %>%
-  lm(children ~  educ + age +agesq + electric + tv +bicycle, data = .) ->model5
+  ivreg(children ~  educ + age + agesq + electric + tv + bicycle | frsthalf + age + agesq + electric + tv +bicycle, data=.) -> model5
 summary(model5)
 ```
+加進更多工具變數使教育年限對孩子數的影響更強，本來由OLS跑出的是媽媽受教育年數每增加一年，孩子數會下降0.077個，加了工具變數後變成媽媽受教育年數每增加一年，孩子數會下降0.16個，不過相對OLS估計下就顯得比較不顯著。
+另外，相較於沒有看電視的人，較常看電視的那群人通常會久坐，造成身體比較不好，生育率比較低，所以television ownership和fertility有負向的關係。
 
 ## 1.5 
 Continue from 1.4, conduct Hausman test to see if OLS is valid for the study under a 5 percent test size.
