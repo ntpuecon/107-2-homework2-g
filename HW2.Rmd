@@ -354,6 +354,6 @@ $\tilde{w}_i=w_i+\epsilon_i$\
 $y_i=\beta^* x_i+\gamma (\tilde{w}_i-\epsilon_i)+y_{-x,-w,i}$\
 $E(y_i|x_i,\tilde{w_i})=\beta^*E(x_i|x_i,\tilde{w_i})+\gamma E(\tilde{w_i}|x_i,\tilde{w_i})-\gamma E(\epsilon_i|x_i,\tilde{w_i})+E(y_{-x,-w,i}|x_i,\tilde{w_i})$
 
-其中$E(y_{-x,-w,i} | x_i,\tilde{w}_i)$和$x_i$無關，故條件期望值為零
+其中$E(y_{-x,-w,i} | x_i,\tilde{w}_i)$和$x_i$無關，故條件期望值為$y_{-x,-w,i}$
 
 若$E(\epsilon_i | x_i , \tilde{w}_i)=0$成立，則表示$x_i$和$\epsilon_i$獨立，此時$E(y_i | x_i , \tilde{w}_i)=\beta^\star x_i+\gamma \tilde{w}_i$，故$x_i$的OLS估計式具有一致性
