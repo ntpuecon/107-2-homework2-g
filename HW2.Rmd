@@ -122,7 +122,7 @@ sandwich_HC1<-function(x,adjust=TRUE){
 summary(model5, vcov = sandwich_HC1, diagnostics = TRUE, df=Inf) -> model5_tests_hc1
 model5_tests
 ```
-由表可知Hausman統計量為1.936，沒有大於自由度為6的卡方12.59，在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
+由表可知Hausman統計量為1.936，由p-value可知在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
 
 ## 1.6
 Can we test whether frsthalf is indeed exogenous for being an IV? why or why not? \
@@ -325,35 +325,12 @@ $E(y_i|\tilde{x}_i,w_i)=(1+\alpha_2)\beta^{\star}\tilde{x}_i-\alpha_1\beta^{\sta
 
 若我們沒有真正的$w_i$資料而改成使用它的替代變數$\tilde{w}_i$進行複迴歸，且令
 $$\tilde{w}_i=w_i+\epsilon_i.$$
-請問控制變數使用替代變數下，$x_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|x_i,\tilde{w}_i)$中$x_i$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？
-
-用$\tilde{w}_i$替代$w_i$做為控制變數，$\tilde{w}_i$與$Y_{-x_i}$有關且$\tilde{w}_i$與$x_i$有關
-
-訊息拆解:
-
-$Y_{-x_i}=E(Y_{-x_i}|\tilde{w}_i)+(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))$ \
-$Y_i=(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$ \
-令$Y_{-x,-\tilde{w},i}=(Y_{-x_i}-E(Y_{x_i}|\tilde{w_i}))$ \
-$Y_i=Y_{-x_i,-\tilde{w_i}}+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$ \
-$Y_{-x_i,-\tilde{w_i}}$與$\tilde{w}$無關，假設$\tilde{w}$隨時間改變\
-即$E(Y_{-x_i,t}|\tilde{w_i})=\alpha_i$，$\alpha_i$為固定效果 \
-$Y_{it}=Y_{-x,\tilde{w},it}+\alpha_i+\beta^{\star}x_it$ \
-$Y_{i,0}=Y_{-x,\tilde{w},i0}+\alpha_i+\beta^{\star}x_{i0}$ \
-$Y_{i,1}=Y_{-x,-\tilde{w},i1}+\alpha_i+\beta^{\star}x_{i1}$ \
-$(Y_{i,1}-Y_{i,0})=\gamma_0+\gamma_1(x_{i1}-x_{i0})+V_i$ \
-$E(Y_{i1}-Y_{i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})+\beta^{\star}(x_{xi}-x_{i0})$ \
-$\because Y_{-x,-\tilde{w},i1}\perp x_{i1}，Y_{-x,-\tilde{w},i0}\perp x_{i0}$ \
-$\therefore E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})=\gamma_0$ \
-$\gamma(x_{i1}-x_{i0})=\beta^{\star}(x_{i1}-x_{i0})$ \
-$V_i=(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})-E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})$ \
-But we need a strong assumption that
-$Y_{-x,-\tilde{w},is}\perp x_{it}$ when $s \ne t$ \
-$so \to (Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}) \perp (x_{i1}-x_{i0})$ \
------------------------------------------ \
+請問控制變數使用替代變數下，$x_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|x_i,\tilde{w}_i)$中$x_i$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？\
+\
 $\tilde{w}_i=w_i+\epsilon_i$\
 $y_i=\beta^* x_i+\gamma (\tilde{w}_i-\epsilon_i)+y_{-x,-w,i}$\
 $E(y_i|x_i,\tilde{w_i})=\beta^*E(x_i|x_i,\tilde{w_i})+\gamma E(\tilde{w_i}|x_i,\tilde{w_i})-\gamma E(\epsilon_i|x_i,\tilde{w_i})+E(y_{-x,-w,i}|x_i,\tilde{w_i})$
 
-其中$E(y_{-x,-w,i} | x_i,\tilde{w}_i)$和$x_i$無關，故條件期望值為零
+其中$E(y_{-x,-w,i} | x_i,\tilde{w}_i)$和$x_i$無關，故條件期望值為$y_{-x,-w,i}$
 
 若$E(\epsilon_i | x_i , \tilde{w}_i)=0$成立，則表示$x_i$和$\epsilon_i$獨立，此時$E(y_i | x_i , \tilde{w}_i)=\beta^\star x_i+\gamma \tilde{w}_i$，故$x_i$的OLS估計式具有一致性
