@@ -54,10 +54,11 @@ fertil2 %>%
   lm(children ~ educ + age +agesq, data=.) ->model1
 summary(model1)
 ```
-由表可知:在其他條件不變下，當媽媽受教育年數每增加一年，孩子數會下降0.09個
-         在其他條件不變下，媽媽年紀每增加一歲，孩子數會增加0.33個
-         在其他條件不變下，媽媽年紀平方每增加一單位，孩子數會下降0.0026個
-         且由p-value可知三個變數對於解釋孩子數都是顯著的。
+由表可知: \
+在其他條件不變下，當媽媽受教育年數每增加一年，孩子數會下降0.09個 \
+在其他條件不變下，媽媽年紀每增加一歲，孩子數會增加0.33個 \
+在其他條件不變下，媽媽年紀平方每增加一單位，孩子數會下降0.0026個 \
+且由p-value可知三個變數對於解釋孩子數都是顯著的。
 
 ## 1.2
 The variable frsthalf is a dummy variable equal to one if the woman was born during the first six months of the year. Assuming that frsthalf is uncorrelated with the error term from 1.1, show that frsthalf is a reasonable IV candidate for educ. (Hint: you need to do a regression.)
@@ -68,8 +69,7 @@ fertil2 %>%
   lm(educ ~ frsthalf + age +agesq, data=.) ->model2
 summary(model2)
 ```
-由表可知，frsthalf之係數顯著不為0，所以和educ具有關聯性
-且F-statistic=(-7.554)^2 > 10 根據經驗法則，frsthalf是一個合理的強工具變數。
+由表可知，frsthalf之係數顯著不為0，所以和educ具有關聯性，是合理的工具變數候選人。
 
 ## 1.3
 Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estimate from 1.1.
@@ -130,7 +130,6 @@ Can we test whether frsthalf is indeed exogenous for being an IV? why or why not
 
 ## 1.7
 If we add one more IV catholic, can we test IV exogeneity? If yes, what is the test result under a 5 percent test size.
-
 
 ```{r ans17}
 library(AER)
@@ -308,9 +307,9 @@ $$\tilde{x}_i=x_i+\epsilon_i.$$
 請問效應解釋變數使用替代變數下，$\tilde{x}_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|\tilde{x}_i,w_i)$中$\tilde{x_i}$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？
 
 $y_i=(\tilde{x_i}-\epsilon_i)\beta^{\star}+{\gamma}w_i+y_{-x,-w,i}$
-$if E(\epsilon_i|\tilde{x}_i)=\alpha_1+\alpha2\tilde{x}$
+$if E(\epsilon_i|\tilde{x}_i)=\alpha_1+\alpha2\tilde{x}$ \
 $y_i=(\tilde{x}_i-(\alpha_1+\alpha_2\tilde{x})\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
-$E(y_i|\tilde{x}_i,w_i)=(1-|\alpha_2)\beta^{\star}\tilde{x}_i-\alpha_1\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
+$E(y_i|\tilde{x}_i,w_i)=(1+\alpha_2)\beta^{\star}\tilde{x}_i-\alpha_1\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
 $ 除非 E(\epsilon_i|\tilde{x}_i)=0,\tilde{x}_i\perp\epsilon_i$
 $E(y_i|\tilde{x}_i,w_i)=\tilde{x}_i\beta^{\star}+\gamma w_i+y_{-x,-w,i}如果要有一致性的話需要\tilde{x}_i\perp\epsilon_i才會有$
 
