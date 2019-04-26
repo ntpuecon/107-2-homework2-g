@@ -8,9 +8,9 @@ output:
       collapsed: true
       smooth_scroll: false
 params:
-  name: ["阿花","阿明"]
-  id: [710761001,710661002]
-  group: "team1"
+  name: ["黃鉦翔","林應廷","張又方","劉婷軒"]
+  id: [710761121,710761129,710761103,710761130]
+  group: "teamG"
   url: ""
 ---
 請依狀況更改上面的name,id及group（分別代表組員姓名，學號及組號），但請勿更改下面三行的設定。  
@@ -36,7 +36,7 @@ params:
 
 # 1 實證應用
 Execute the following code lines to import fertil2 data frame. 
-```{r}
+```{r data1}
 library(readr)
 fertil2 <- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/master/fertil2.csv")
 ```
@@ -48,28 +48,108 @@ Estimate the model:
 $$children=\beta_{0}+\beta_{1}educ+\beta_{2}age+\beta_{3}age^{2}+u$$
 by OLS, and interpret the estimates.
 
+```{r ans11}
+library(dplyr)
+fertil2 %>%
+  lm(children ~ educ + age +agesq, data=.) ->model1
+summary(model1)
+```
+由表可知: \
+在其他條件不變下，當媽媽受教育年數每增加一年，孩子數會下降0.09個 \
+在其他條件不變下，媽媽年紀每增加一歲，孩子數會增加0.33個 \
+在其他條件不變下，媽媽年紀平方每增加一單位，孩子數會下降0.0026個 \
+且由p-value可知三個變數對於解釋孩子數都是顯著的。
+
 ## 1.2
 The variable frsthalf is a dummy variable equal to one if the woman was born during the first six months of the year. Assuming that frsthalf is uncorrelated with the error term from 1.1, show that frsthalf is a reasonable IV candidate for educ. (Hint: you need to do a regression.)
 
+
+```{r ans12}
+fertil2 %>%
+  lm(educ ~ frsthalf + age +agesq, data=.) ->model2
+summary(model2)
+```
+由表可知，frsthalf之係數顯著不為0，所以和educ具有關聯性，是合理的工具變數候選人。
+
 ## 1.3
-Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estiimate from 1.1.
+Estimate the model from part 1.1 by using frsthalf as an IV for educ. Compare the estimated effect of education with the OLS estimate from 1.1.
+
+
+```{r ans13}
+library(AER)
+fertil2 %>%
+  ivreg(children ~ educ + age +agesq | frsthalf + age + agesq, data=.) -> model3
+summary(model3)
+summary(model1)
+```
+比較加了工具變數的model3和1.1跑的OLS model1，可看出教育年數對於孩子數的影響更多，本來由OLS跑出的是媽媽受教育年數每增加一年，孩子數會下降0.09個，加了工具變數後變成媽媽受教育年數每增加一年，孩子數會下降0.17個。
 
 ## 1.4
 Add the binary variables electric, tv, and bicycle to the model and assume that these are exogenous. Estimate the equation by OLS and TSLS and compare the estimated coefficients on educ. Interpret the coefficient on tv and explain why television ownership has a negative effect on fertility.
 
+```{r ans14}
+library(dplyr)
+library(AER)
+fertil2 %>%
+  lm(children ~  educ + age +agesq + electric + tv +bicycle, data = .) ->model4
+summary(model4)
+
+fertil2 %>%
+  ivreg(children ~  educ + age + agesq + electric + tv + bicycle | frsthalf + age + agesq + electric + tv +bicycle, data=.) -> model5
+summary(model5)
+```
+加進更多工具變數使教育年限對孩子數的影響更強，本來由OLS跑出的是媽媽受教育年數每增加一年，孩子數會下降0.077個，加了工具變數後變成媽媽受教育年數每增加一年，孩子數會下降0.16個，不過相對OLS估計下就顯得比較不顯著。
+另外，相較於沒有看電視的人，較常看電視的那群人通常會久坐，造成身體比較不好，生育率比較低，所以television ownership和fertility有負向的關係。
+
 ## 1.5 
 Continue from 1.4, conduct Hausman test to see if OLS is valid for the study under a 5 percent test size.
+```{r ans15}
+library(AER)
+model5 <- ivreg(
+  children ~  educ + age +agesq + electric + tv +bicycle| frsthalf + age + agesq + electric + tv +bicycle, data=fertil2
+   ) 
+
+model4 <- lm(
+  children ~  educ + age +agesq + electric + tv +bicycle, data = fertil2
+  )
+
+summary(model4, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model4_tests
+summary(model5, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model5_tests
+
+sandwich_HC1<-function(x,adjust=TRUE){
+  sandwich(x,adjust=adjust)
+}
+summary(model5, vcov = sandwich_HC1, diagnostics = TRUE, df=Inf) -> model5_tests_hc1
+model5_tests
+```
+由表可知Hausman統計量為1.936，沒有大於自由度為6的卡方，在5%的顯著水準下不拒絕Ho，用OLS或TSLS都可以，係數值都很相近。
 
 ## 1.6
 Can we test whether frsthalf is indeed exogenous for being an IV? why or why not?
+不行，因為如果只有額外找frsthalf這個工具變數，並且有興趣的效應變數只有educ一個的話，這時就滿足exactly identify，沒辦法檢定額外找的frsthalf是否滿足排除條件，因為卡方的自由度為0。
 
 ## 1.7
 If we add one more IV catholic, can we test IV exogeneity? If yes, what is the test result under a 5 percent test size.
 
+```{r ans17}
+library(AER)
+model6 <- ivreg(
+  children ~  educ + age +agesq | catholic + frsthalf + age + agesq , data=fertil2
+   ) 
+summary(model6, vcov = sandwich, diagnostics = TRUE, df=Inf) -> model6_tests
+model6_tests
+```
+此題因為多加了catholic這個工具變數所以就可以檢定排除條件，因為滿足over-identify，由表可知sargan統計量為1.436，由p-value知在5%顯著水準下不拒絕Ho，表示工具變數和tsls下的殘差正交，滿足排他條件(外生條件)。
+
 ## 1.8
 Are frsthalf and catholic weak IVs?
 
-
+```{r ans18}
+library(dplyr)
+fertil2 %>%
+  lm(educ ~ catholic + frsthalf + age +agesq, data=.) ->model6
+summary(model6)
+```
 
 # 2 複迴歸與工具變數
 
@@ -95,6 +175,17 @@ $$Y=Y_{-p}+\beta^* P$$
 
 說明此時$E(Y|P)$中P的係數即為$\beta^*$.
 
+$Y=Y_{-p}+{\beta}^\star P$ \
+ $=E(Y|P)= E(Y_{-p})+{\beta}^\star P|P)$ \
+ $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|P]+{\beta}^{\star}P$ \
+ $=E(2+3rincome+\tilde{\epsilon}|P)+{\beta}^{\star}P$ \
+ $=2+3E(rincome|P)+E(\tilde{\epsilon}|P)+{\beta}^{\star}P$ \
+ $=2+\beta^{\star}P$ \
+ 其中$rincome ⊥ P$則 $E(rincome|P)=0$ \
+ $\tilde{\epsilon}⊥ P則 E(\tilde{\epsilon}|P)=0$ \
+ 
+ 由此過程可以得知，$E(Y|P)$其中$P$的係數為$\beta^*$
+
 ## 2.2 立足點情境A.2
 
 此情境包含兩部份：
@@ -107,6 +198,20 @@ $$Y=Y_{-p}+\beta^* P$$
 
 說明此時$E(Y|P)$中P的係數「不」為$\beta^*$，但$E(Y|P,rincome)$中P的係數為$\beta^*$。
 
+$E(Y|P)=E(2+3rincome|P)+E(\tilde{\epsilon}|P)+{\beta^\star}P$ \
+      $=E(2+3rincome|P)+0+{\beta^\star}P$ \
+      $=2+3E(rincome|P)+{\beta^\star}P$ \
+      $=2+3(0.5+P)+{\beta^\star}P$ \
+      $=3.5+(3+{\beta^\star})P$ \
+      由此過程可以得知，$E(Y|P)中P的係數不等於{\beta^\star}$ \
+ \
+
+$E(Y|P,rincome)=E(Y_{-P}+{\beta^\star}P|P,rincome)$ \
+              $=E[E(Y_{-P}|rincome)+\tilde{\epsilon}|P,rincome]+{\beta^\star}P$ \
+              $=E(Y_{-P}|rincome)+E(\tilde{\epsilon}|P,rincome)+{\beta^\star}P$ \
+              $=2+3rincome+0+{\beta^\star}P$ \
+              由此過程可以得知，$E(Y|P,rincome) 中P的係數為{\beta^\star}$
+
 ## 2.3 立足點情境A.3
 
 考慮以下兩個情境條件：
@@ -118,6 +223,21 @@ $$Y=Y_{-p}+\beta^* P$$
 即P與$Y_{-p}$有關連：此關連性可來自於【A.2.2】中P與rincome的關連，也可來自於它與「非價格、非所得」引起的銷量之關連（即與$\tilde{\epsilon}$相關部份）
 
 若$E(\tilde{\epsilon}|P)=0.5+2P$，說明不論使用$E(Y|P)$或$E(Y|P,rincome)$，其P之係數都不會是$\beta^*$
+
+$E(Y|P)=E(Y_{-p}+\beta^*P|P)$ \
+      $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|P]+\beta^*P$ \
+      $=E(2+3rincome|P)+E(\tilde{\epsilon}|P)+\beta^*P$ \
+      $=2+3E(rincome|P)+0.5+2P+\beta^*P$ \
+      $=2+3(0.5+P)+0.5+2P+\beta^*P$ \
+      $=4+(5+\beta^*)P$  \
+      由此過程可以得知，其中$5+\beta^*$不等於$\beta^*$ \
+ \
+$E(Y|P,rincome)=E(Y_{-p}+\beta^*P|P,rincome)$ \
+              $=E(E(Y_{-p}|rincome)+\tilde{\epsilon}|P,rincome]+\beta^*P$ \
+              $=2+3rincome+E(\tilde{\epsilon}|P,rincome)+\beta^*P$ \
+              $=2+3rincome+0.5+2P+\beta^*P$ \
+              $=2.5+3rincome+(2+\beta^*)P$  \
+              由此過程可以得知，其中$2+\beta^*$不等於$\beta^*$
 
 ## 2.4 立足點情境A.3+效應情境B.1：TSLS
 
@@ -133,6 +253,16 @@ $$Y=Y_{-p}+\beta^* P$$
 
 若$E(\tilde{\epsilon}|P)=0.5+2P$，說明使用$E(Y|P_z,rincome)$其中$P_z$的係數會是$\beta^*$
 
+$E(Y|P_z,rincome)=E(Y_{-p}+\beta^*P|P_z,rincome)$ \
+                $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|P_z,rincome]+E(\beta^*P|P_z,rincome)$ \
+                $=2+3rincome+\beta^*P_z$ \
+                
+其中:  \
+$E(\tilde\epsilon|P_z,rincome)=E[Y_{-p}-E(Y_{-p}|rincome)|P_z,rincome]$ \
+                             $=E(Y_{-p}|P_z,rincome)-E(Y_{-p}|P_z,rincome)=0$ \
+                             
+由此過程可以得知，$E(Y|P_z,rincome)$其中$P_z$的係數為$\beta^*$
+
 ## 2.5 立足點情境A.3+效應情境B.1：複迴歸
 
 承接上題情境，即
@@ -145,6 +275,18 @@ $$Y=Y_{-p}+\beta^* P$$
   
 說明使用$E(Y|P,rincome,z)$其中$P$的係
 數不會是$\beta^*$.
+
+$E(Y|P,rincome,Z)=E(Y_{-p}+{\beta}^{\star}p|p,rincome,Z)$ \
+                $=E[E(Y_{-p}|rincome)+\tilde{\epsilon}|p,rincome,Z]+\beta^{\star}p$ \
+                $=2+3rincome+E(\tilde{\epsilon}|p,rincome,Z)+\beta^{\star}p$ \
+                $=2+3erincome+\beta^{\star}$ \
+                \
+                
+                其中 \
+                $E(\tilde{\epsilon}|p,rincome,Z)=E[Y_{-p}-E(Y_{-p}|rincome|p,rincome,Z)]$ \
+                $=E[Y_{-p}|p,rincome,Z]-E(Y_-p|rincome)|p,rincome,Z]$ \
+                $=E(Y_{-p}|p,rincome,Z)-E(Y_-p|p,rincome,Z)=0$ \
+                由此過程可以得知，$E(Y|P,rincome,z)$其中$P$的係數不會為$\beta^*$
 
 # 3. 替代變數
 
@@ -164,10 +306,37 @@ $$y_i=\beta^* x_i+\gamma w_i+y_{-x,-w,i}$$
 $$\tilde{x}_i=x_i+\epsilon_i.$$
 請問效應解釋變數使用替代變數下，$\tilde{x}_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|\tilde{x}_i,w_i)$中$\tilde{x_i}$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？
 
+$y_i=(\tilde{x_i}-\epsilon_i)\beta^{\star}+{\gamma}w_i+y_{-x,-w,i}$
+$if E(\epsilon_i|\tilde{x}_i)=\alpha_1+\alpha2\tilde{x}$ \
+$y_i=(\tilde{x}_i-(\alpha_1+\alpha_2\tilde{x})\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
+$E(y_i|\tilde{x}_i,w_i)=(1+\alpha_2)\beta^{\star}\tilde{x}_i-\alpha_1\beta^{\star}+\gamma w_i+y_{-x_i,-w_i}$
+$ 除非 E(\epsilon_i|\tilde{x}_i)=0,\tilde{x}_i\perp\epsilon_i$
+$E(y_i|\tilde{x}_i,w_i)=\tilde{x}_i\beta^{\star}+\gamma w_i+y_{-x,-w,i}如果要有一致性的話需要\tilde{x}_i\perp\epsilon_i才會有$
+
 ## 3.2
 
 若我們沒有真正的$w_i$資料而改成使用它的替代變數$\tilde{w}_i$進行複迴歸，且令
 $$\tilde{w}_i=w_i+\epsilon_i.$$
 請問控制變數使用替代變數下，$x_i$的OLS估計式還有一致性嗎？（驗證$E(y_i|x_i,\tilde{w}_i)$中$x_i$的係數是否為$\beta^*$）要有一致性會需要什麼額外條件嗎？
 
+$用\tilde{w}_i替代w_i做為控制變數，\tilde{w}_i與Y_{-x_i}有關且\tilde{w}_i與x_i有關$
 
+訊息拆解:
+
+$Y_{-x_i}=E(Y_{-x_i}|\tilde{w}_i)+(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))$
+$Y_i=(Y_{-x_i}-E(Y_{-x_i}|\tilde{w_i}))+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$
+$令Y_{-x,-\tilde{w},i}=(Y_{-x_i}-E(Y_{x_i}|\tilde{w_i}))$
+$Y_i=Y_{-x_i,-\tilde{w_i}}+E(Y_{-x_i}|\tilde{w_i})+\beta^{\star}x_i$
+$Y_{-x_i,-\tilde{w_i}}與\tilde{w}無關，假設\tilde{w}隨時間改變，即E(Y_{-x_i,t}|\tilde{w_i})=\alpha_i，\alpha_i為固定效果$
+$Y_{it}=Y_{-x,\tilde{w},it}+\alpha_i+\beta^{\star}x_it$
+$Y_{i,0}=Y_{-x,\tilde{w},i0}+\alpha_i+\beta^{\star}x_{i0}$
+$Y_{i,1}=Y_{-x,-\tilde{w},i1}+\alpha_i+\beta^{\star}x_{i1}$
+$(Y_{i,1}-Y_{i,0})=\gamma_0+\gamma_1(x_{i1}-x_{i0})+V_i$
+$E(Y_{i1}-Y_{i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})+\beta^{\star}(x_{xi}-x_{i0})$
+$\because Y_{-x,-\tilde{w},i1}\perp x_{i1}，Y_{-x,-\tilde{w},i0}\perp x_{i0}$
+$\therefore E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}|x_{i1}-x_{i0})=E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})=\gamma_0$
+$\gamma(x_{i1}-x_{i0})=\beta^{\star}(x_{i1}-x_{i0})$
+$V_i=(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})-E(Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0})$
+But we need a strong assumption that
+$Y_{-x,-\tilde{w},is} \perp x_{it} whens \ne t $
+$so \to (Y_{-x,-\tilde{w},i1}-Y_{-x,-\tilde{w},i0}) \perp (x_{i1}-x_{i0})$
